@@ -1,6 +1,6 @@
 import { Component, OnInit, EventEmitter, Output } from '@angular/core';
 import { Post } from '../post.model';
-import { FormGroup, FormControl, Validators} from '@angular/forms';
+import { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { PostsService } from '../post.service';
 import {ActivatedRoute, ParamMap} from "@angular/router";
 import { mimeType } from "./mime-type.validators";
@@ -26,6 +26,8 @@ export class PostCreateComponent implements OnInit {
 
 
 
+
+
   ngOnInit() {
     this.form = new FormGroup({
       title: new FormControl(null, {
@@ -48,7 +50,8 @@ export class PostCreateComponent implements OnInit {
             id: postData._id,
             title: postData.title,
             content: postData.content,
-            imagePath: postData.imagePath
+            imagePath: postData.imagePath,
+            creator: postData.creator
           };
           this.form.setValue({
             title: this.post.title,
@@ -56,10 +59,11 @@ export class PostCreateComponent implements OnInit {
             image: this.post.imagePath
           });
         });
+      } else {
+        this.mode = "create";
+        this.postId = null;
       }
-
     });
-
   }
 
   @Output() postCreated = new EventEmitter<Post>();
@@ -70,13 +74,21 @@ export class PostCreateComponent implements OnInit {
       return;
     }
     this.isLoading = true;
-    if (this.mode === "create") {
+    if (this.mode === 'create') {
       this.postsService.addPost(
         this.form.value.title,
         this.form.value.content,
         this.form.value.image
       );
+    } else {
+      this.postsService.updatePost(
+        this.postId,
+        this.form.value.title,
+        this.form.value.content,
+        this.form.value.image
+      );
     }
+    this.form.reset();
   }
 
 
